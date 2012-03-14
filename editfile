@@ -3,6 +3,20 @@ EDITFILE_DIR=~/Dropbox/editfile
 mkdir -p $EDITFILE_DIR  # ensure this exists
 TARGET_PATH=$EDITFILE_DIR/$(basename $0).txt
 
+edit () {
+    # Determine editor to use
+    if [[ -n "${EDITOR}" ]] ; then
+        EDIT=$EDITOR
+    elif $(which gedit) ; then
+        EDIT="gedit -b"  # default fallback if present
+    else
+        EDIT="vim"       # fallback if no gedit there
+    fi
+
+    # Edit it...
+    $EDIT $1
+}
+
 case $1 in
     '-a')
         # append command arguments to file and exit
@@ -13,17 +27,17 @@ case $1 in
         # list file and exit
         cat $TARGET_PATH
         ;;
+    '')
+        # Edit it...
+        edit $TARGET_PATH
+        ;;
     *)
-        # Determine editor to use
-        if [[ -n "${EDITOR}" ]] ; then
-            EDIT=$EDITOR
-        elif $(which gedit) ; then
-            EDIT="gedit -b"  # default fallback if present
-        else
-            EDIT="vim"       # fallback if no gedit there
-        fi
+        # edit a sub-file
+        TARGET_DIR=$EDITFILE_DIR/$(basename $0)
+        mkdir -p $TARGET_DIR
+        TARGET_PATH=$TARGET_DIR/$1.txt
 
         # Edit it...
-        $EDIT $TARGET_PATH
+        edit $TARGET_PATH
         ;;
 esac

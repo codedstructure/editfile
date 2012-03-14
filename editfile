@@ -1,0 +1,29 @@
+#!/bin/bash
+EDITFILE_DIR=~/Dropbox/editfile
+mkdir -p $EDITFILE_DIR  # ensure this exists
+TARGET_PATH=$EDITFILE_DIR/$(basename $0).txt
+
+case $1 in
+    '-a')
+        # append command arguments to file and exit
+        shift  # don't include the '-a'
+        echo "$*" >> $TARGET_PATH
+        ;;
+    '-l')
+        # list file and exit
+        cat $TARGET_PATH
+        ;;
+    *)
+        # Determine editor to use
+        if [[ -n "${EDITOR}" ]] ; then
+            EDIT=$EDITOR
+        elif $(which gedit) ; then
+            EDIT="gedit -b"  # default fallback if present
+        else
+            EDIT="vim"       # fallback if no gedit there
+        fi
+
+        # Edit it...
+        $EDIT $TARGET_PATH
+        ;;
+esac

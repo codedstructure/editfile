@@ -1,7 +1,10 @@
 #!/bin/bash
+
+# Ben Bass 2012 @codedstructure
+
 EDITFILE_DIR=~/Dropbox/editfile
 mkdir -p $EDITFILE_DIR  # ensure this exists
-TARGET_PATH=$EDITFILE_DIR/$(basename $0).txt
+MAJOR_NAME=$(basename $0)
 
 edit () {
     # Determine editor to use
@@ -17,26 +20,66 @@ edit () {
     $EDIT $1
 }
 
-case $1 in
-    '-a')
-        # append command arguments to file and exit
-        shift  # don't include the '-a'
-        echo "$*" >> $TARGET_PATH
-        ;;
-    '-l')
+usage () {
+    echo "Usage: $MAJOR_NAME [OPTIONS] [CATEGORY]"
+    echo "  default operation is to edit the file"
+    echo
+    echo "Options:"
+    echo "  -h    this help"
+    echo "  -a    append stdin to the file"
+    echo "  -l    output the file to stdout"
+    echo " (Note these options are mutually exclusive)"
+    echo
+    exit 1
+}
+
+MODE='';
+while getopts "alh" option ; do
+    case $option in
+        'a')
+            if [[ -z $MODE ]] ; then MODE="APPEND"; else usage; fi
+            ;;
+        'l')
+            if [[ -z $MODE ]] ; then MODE="LIST"; else usage; fi
+            ;;
+        'h')
+            usage
+            ;;
+        *)
+            echo "Invalid option"
+            echo
+            usage
+            ;;
+    esac
+done
+
+shift $(($OPTIND - 1))
+
+if [[ $# -gt 1 ]]; then
+    echo "Too many arguments"
+    echo
+    usage
+fi
+
+if [[ -n "$1" ]]; then
+    # edit a sub-file
+    TARGET_DIR=$EDITFILE_DIR/$(basename $0)
+    mkdir -p $TARGET_DIR
+    TARGET_PATH=$TARGET_DIR/$1.txt
+else
+    # edit the 'main' file
+    TARGET_PATH=$EDITFILE_DIR/${MAJOR_NAME}.txt
+fi
+
+case $MODE in
+    'LIST')
         # list file and exit
         cat $TARGET_PATH
         ;;
-    '')
-        # Edit it...
-        edit $TARGET_PATH
+    'APPEND')
+        cat /dev/stdin >> $TARGET_PATH
         ;;
-    *)
-        # edit a sub-file
-        TARGET_DIR=$EDITFILE_DIR/$(basename $0)
-        mkdir -p $TARGET_DIR
-        TARGET_PATH=$TARGET_DIR/$1.txt
-
+    '')
         # Edit it...
         edit $TARGET_PATH
         ;;

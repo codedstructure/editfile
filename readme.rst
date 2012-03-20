@@ -58,7 +58,7 @@ appropriate to it in the same place, for example:
 ::
 
     $ pwd
-    /home/users/ben
+    /home/users/ben/bin
     $ ln -s editfile notes
     $ ln -s editfile today
     $ ln -s editfile blog

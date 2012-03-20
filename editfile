@@ -6,6 +6,11 @@ EDITFILE_DIR=~/Dropbox/editfile
 mkdir -p $EDITFILE_DIR  # ensure this exists
 MAJOR_NAME=$(basename $0)
 
+if [[ $MAJOR_NAME = "editfile" ]] ; then
+    echo 'this script should not be run directly but from a symlink to it'
+    exit 1
+fi
+
 edit () {
     # Determine editor to use
     if [[ -n "${EDITOR}" ]] ; then

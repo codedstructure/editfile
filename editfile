@@ -2,9 +2,12 @@
 
 # Ben Bass 2012 @codedstructure
 
+# Note various things are wrapped in double-quotes to ensure
+# that things with spaces are handled OK.
+
 EDITFILE_DIR=~/Dropbox/editfile
 mkdir -p $EDITFILE_DIR  # ensure this exists
-MAJOR_NAME=$(basename $0)
+MAJOR_NAME=$(basename "$0")
 
 if [[ $MAJOR_NAME = "editfile" ]] ; then
     echo 'this script should not be run directly but from a symlink to it'
@@ -22,7 +25,7 @@ edit () {
     fi
 
     # Edit it...
-    $EDIT $1
+    $EDIT "$1"
 }
 
 usage () {
@@ -70,22 +73,34 @@ if [[ -n "$1" ]]; then
     # edit a sub-file
     TARGET_DIR=$EDITFILE_DIR/$(basename $0)
     mkdir -p $TARGET_DIR
-    TARGET_PATH=$TARGET_DIR/$1.txt
+    TARGET_PATH="$TARGET_DIR/$1"
 else
     # edit the 'main' file
-    TARGET_PATH=$EDITFILE_DIR/${MAJOR_NAME}.txt
+    TARGET_PATH="$EDITFILE_DIR/${MAJOR_NAME}"
+fi
+
+# support for various extensions.
+# Will always default to .txt if nothing already there.
+# Up to the user to change / create ext of different type.
+# Hopefully once an editor opens the user can see which
+# actual file got selected :-)
+if ! [[ $TARGET_PATH =~ \.(rst|txt|md)$ ]] ; then
+    for EXT in .rst .md .txt ; do
+        [[ -f "${TARGET_PATH}${EXT}" ]] && break
+    done
+    TARGET_PATH="${TARGET_PATH}${EXT}"
 fi
 
 case $MODE in
     'LIST')
         # list file and exit
-        cat $TARGET_PATH
+        cat "$TARGET_PATH"
         ;;
     'APPEND')
-        cat /dev/stdin >> $TARGET_PATH
+        cat /dev/stdin >> "$TARGET_PATH"
         ;;
     '')
         # Edit it...
-        edit $TARGET_PATH
+        edit "$TARGET_PATH"
         ;;
 esac

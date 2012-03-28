@@ -3,6 +3,19 @@
 #
 # Ben Bass 2012 @codedstructure
 
+# This doesn't declare global constants as it gets sourced
+# and doesn't want to pollute the environment. But it does
+# assume ~/Dropbox/editfile and ~/bin are setup appropriately.
+
+_list_files()
+{
+    if ! [[ -d ~/Dropbox/editfile/$1 ]] ; then
+        return
+    fi
+    cd ~/Dropbox/editfile/$1
+    find * -maxdepth 1 -type f | sed 's/\.txt$//g' | sed 's/ /\\ /g'
+}
+
 _editfile()
 {
     local curw
@@ -16,12 +29,15 @@ _editfile()
         LIMIT=4
     fi
     if [[ ${#COMP_WORDS[@]} -lt $LIMIT ]] ; then
-        COMPREPLY=($(compgen -W '$(cd ~/Dropbox/editfile/$1; find  * -maxdepth 1 -type f | sed s/\.txt$//g)' -- $curw))
+        saveIFS=$IFS
+        IFS=$'\n'
+        COMPREPLY=($(compgen -W '$(_list_files $1)' -- $curw))
+        IFS=$saveIFS
     fi
     return 0
 }
 
 for ff in $(find -L ~/bin -maxdepth 1 -samefile ~/bin/editfile); do
-    complete -F _editfile $(basename $ff)
+    complete -o nospace -F _editfile $(basename $ff)
 done
 

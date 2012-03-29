@@ -12,7 +12,7 @@ _list_files()
     if ! [[ -d ~/Dropbox/editfile/$1 ]] ; then
         return
     fi
-    cd ~/Dropbox/editfile/$1
+    cd ~/Dropbox/editfile/$1 2> /dev/null || return
     find * -maxdepth 1 -type f | sed 's/\.txt$//g' | sed 's/ /\\ /g'
 }
 

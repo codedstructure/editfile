@@ -34,14 +34,67 @@ each command, a category can also be given (though isn't necessary).
 Examples
 --------
 
-*These assume 'notes' and 'todo' are editfile commands*::
+*These assume 'notes', 'todo' and 'blog' are editfile commands*::
 
-    $ notes   # will start editing the file associated with the 'notes' command
+    # start editing the file associated with the 'notes' command
+    $ notes
+
+    # -a reads from stdin and appends to the file
     $ echo "This will be appended to the end of the notes files" | notes -a
-    $ notes -l > notes.backup  # -l dumps the file to standard output
-    $ notes errands  # edit the 'errands' file in the notes namespace
+
+    # -l dumps the file to standard output
+    $ notes -l > notes.backup
+
+    # editfile uses 'EDITOR' if defined, with gedit and vim as fallbacks
+    # edit the 'errands' file in the notes namespace with emacs
+    $ EDITOR=emacs notes errands
+
     $ notes -l errands   # as you expect
-    $ todo -l | notes -a errands   # append content of 'todo' to 'notes/errands'
+
+    # append content of 'todo' to 'notes/errands'
+    $ todo -l | notes -a errands
+
+    # can be given .rst or .md extension to override .txt default
+    $ blog first-post.md
+
+    # once file exists, extension is optional (priority: .rst, .md, .txt)
+    $ blog first-post  # will edit first-post.md
+
+File & folder layout
+--------------------
+
+editfile contains a hardcoded Dropbox path, '~/Dropbox/editfile', which it
+assumes is a sensible place to put things. The script currently needs editing
+if this isn't appropriate.
+
+When using a single level editfile command (e.g. 'notes' is a symlink to
+editfile and is run simply as 'notes'), the system will look for a file of
+this same name (with appropriate extension - see following) under
+~/Dropbox/editfile/, and take the appropriate action (edit, list, append).
+
+When a second label is given after the command, then the file acted upon
+is instead under ~/Dropbox/editfile/*commandname*/, with its file name
+being the second label.
+
+Originally editfile always used '.txt' as the file extension appended to the
+appropriate command / label, but I've found that I want to use editfile for
+writing blog posts and code documentation, so ReStructured Text (.rst) and
+Markdown (.md) file extensions are also supported. When no file exists already,
+then .txt will be created unless an extension is specified. For existing files,
+if no extension is given then the first match in .rst, .md, .txt will be used.
+If more than one of these exists then it is up to the user to sort things out.
+
+Examples
+~~~~~~~~
+
+    =====================  ===============
+    Command                Referenced File
+    =====================  ===============
+    $ notes                ~/Dropbox/editfile/notes.txt
+    $ notes testing        ~/Dropbox/editfile/notes/testing.txt
+    $ blog firstthings.md  ~/Dropbox/editfile/blog/firstthings.md
+    $ blog firstthings     ~/Dropbox/editfile/blog/firstthings.md (if it already exists, else .txt)
+    =====================  ===============
 
 Default installation
 --------------------
@@ -64,8 +117,9 @@ appropriate to it in the same place, for example:
     $ ln -s editfile blog
     $ ln -s editfile todo
 
-A tab-completion expander thing is also provided as **editfile-complete.sh**,
+A tab-completion expander script is also provided as **editfile-complete.sh**,
 which needs sourcing in an appropriate place in the shells where it is
-to be used.
+to be used. This provides expansion of second level items under each
+
 
 *Ben Bass 2012 @codedstructure*

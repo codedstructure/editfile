@@ -9,9 +9,76 @@ EDITFILE_DIR=~/Dropbox/editfile
 mkdir -p $EDITFILE_DIR  # ensure this exists
 MAJOR_NAME=$(basename "$0")
 
+direct_usage () {
+    echo
+    echo "this script is normally run from a symlink to it"
+    echo
+    echo "options when run directly:"
+    echo " -l - list editfile commands"
+    echo " -n <name> - make new editfile command name"
+    echo " -d <name> - delete existing editfile command name"
+    echo
+}
+
 if [[ $MAJOR_NAME = "editfile" ]] ; then
-    echo 'this script should not be run directly but from a symlink to it'
-    exit 1
+    EDITFILE_PATH=$(which editfile)
+    case $1 in
+        '-l')
+            oldIFS=$IFS
+            IFS=:
+            for p in $PATH; do
+                find -L $p -perm -100 -samefile $EDITFILE_PATH 2> /dev/null |\
+                    while read COMMAND; do
+                        CMD_NAME=$(basename $COMMAND)
+                        [[ $CMD_NAME != "editfile" ]] && echo $CMD_NAME
+                    done
+            done
+            IFS=$oldIFS
+            exit 0
+            ;;
+        '-n')
+            if [[ -z $2 ]] ; then
+                echo "editfile -n requires command name argument." >&2
+                direct_usage
+                exit 1
+            fi
+            # This could override an alias. Perhaps use compgen -c,
+            # but that seems dodgy too (and is likely slow).
+            NEW_TARGET="$(dirname $EDITFILE_PATH)/$2"
+            if which $2 > /dev/null ; then
+                echo "Not overriding existing command $(which $2)" >&2
+                direct_usage
+                exit 1
+            fi
+            if test -e $NEW_TARGET ; then
+                echo "Not replacing existing file $NEW_TARGET" >&2
+                direct_usage
+                exit 1
+            fi
+            ln -s $EDITFILE_PATH $NEW_TARGET
+            echo "Created new editfile command '$2'"
+            exit 0
+            ;;
+        '-d')
+            if [[ -z $2 ]] ; then
+                echo "editfile -d requires command name argument." >&2
+                direct_usage
+                exit 1
+            fi
+            # ensure this is a symlink to editfile
+            TARGET=$(which $2)
+            if ! [[ -L $TARGET && $(readlink $TARGET) == $EDITFILE_PATH ]]; then
+                echo "$2 is not an editfile command" >&2
+                direct_usage
+                exit 1
+            fi
+            rm -i $TARGET
+            exit 0
+            ;;
+    esac
+
+    direct_usage
+    exit 2
 fi
 
 edit () {

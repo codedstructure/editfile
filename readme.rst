@@ -2,8 +2,8 @@
 editfile
 ========
 
-Usage
------
+Normal Usage
+------------
 
 ::
 
@@ -137,6 +137,9 @@ assumes two other things:
 - ``editfile`` and appropriately named symlinks to it live in ``~/bin`` or
   elsewhere in the ``PATH`` (somewhere writable is useful for ``editfile -n``
   etc)
+
+Example installation
+~~~~~~~~~~~~~~~~~~~~
 
 Copy ``editfile`` to ``~/bin``, ensure it is executable. Create symlinks as
 appropriate to it in the same place, either directly or via the ``editfile -n``

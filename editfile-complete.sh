@@ -5,7 +5,7 @@
 
 # This doesn't declare global constants as it gets sourced
 # and doesn't want to pollute the environment. But it does
-# assume ~/Dropbox/editfile and ~/bin are setup appropriately.
+# assume ~/Dropbox/editfile/ is the correct EDITFILE_DIR
 
 _list_files()
 {
@@ -37,7 +37,8 @@ _editfile()
     return 0
 }
 
-for ff in $(find -L ~/bin -maxdepth 1 -samefile ~/bin/editfile); do
-    complete -o nospace -F _editfile $(basename $ff)
+for p in $(echo $PATH | tr : \\n | sort | uniq); do
+    for ff in $(find -L $p -maxdepth 1 -perm -100 -samefile $(which editfile) 2> /dev/null); do
+        complete -o nospace -F _editfile $(basename $ff)
+    done
 done
-

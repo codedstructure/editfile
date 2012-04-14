@@ -14,7 +14,7 @@ direct_usage () {
     echo "this script is normally run from a symlink to it"
     echo
     echo "options when run directly:"
-    echo " -l - list editfile commands"
+    echo " -l - list editfile command names"
     echo " -n <name> - make new editfile command name"
     echo " -d <name> - delete existing editfile command name"
     echo
@@ -24,16 +24,13 @@ if [[ $MAJOR_NAME = "editfile" ]] ; then
     EDITFILE_PATH=$(which editfile)
     case $1 in
         '-l')
-            oldIFS=$IFS
-            IFS=:
-            for p in $PATH; do
-                find -L $p -perm -100 -samefile $EDITFILE_PATH 2> /dev/null |\
+            for p in $(echo $PATH | tr : \\n | sort | uniq); do
+                find -L $p -maxdepth 1 -perm -100 -samefile $EDITFILE_PATH 2> /dev/null |\
                     while read COMMAND; do
                         CMD_NAME=$(basename $COMMAND)
                         [[ $CMD_NAME != "editfile" ]] && echo $CMD_NAME
                     done
             done
-            IFS=$oldIFS
             exit 0
             ;;
         '-n')

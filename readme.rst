@@ -14,6 +14,7 @@ Normal Usage
       -h    this help
       -a    append stdin to the file
       -l    output the file to stdout
+      -f    output file path name to stdout
      (Note these options are mutually exclusive)
 
 The key thought behind ``editfile`` is that a user shouldn't have to specify two
@@ -51,11 +52,17 @@ Examples
 
     $ notes -l errands   # as you expect
 
+    $ blog -f editfile
+    /home/ben/Dropbox/editfile/blog/editfile.md
+
     # append content of 'todo' to 'notes/errands'
     $ todo -l | notes -a errands
 
     # can be given .rst or .md extension to override .txt default
     $ blog first-post.md
+
+    # edit two different things at once, sort of bypassing editfile :-)
+    vim $(notes -f) (work -f planning)
 
     # once file exists, extension is optional (priority: .rst, .md, .txt)
     $ blog first-post  # will edit first-post.md
@@ -106,6 +113,10 @@ used. This provides expansion of second level items under each editfile command.
 For example, ``notes <tab>`` above would result in a completion containing at
 least ``testing``. This is a useful way of checking which sub-files exist for
 each editfile command.
+
+If options (-a, -l, -f) are given, then tab completion still occurs after the
+option, for example ``notes -l <tab>`` will still auto-complete the notes
+sub-files.
 
 Direct use of 'editfile'
 ------------------------

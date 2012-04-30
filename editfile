@@ -100,19 +100,23 @@ usage () {
     echo "  -h    this help"
     echo "  -a    append stdin to the file"
     echo "  -l    output the file to stdout"
+    echo "  -f    output file path name to stdout"
     echo " (Note these options are mutually exclusive)"
     echo
     exit 1
 }
 
 MODE='';
-while getopts "alh" option ; do
+while getopts "alfh" option ; do
     case $option in
         'a')
             if [[ -z $MODE ]] ; then MODE="APPEND"; else usage; fi
             ;;
         'l')
             if [[ -z $MODE ]] ; then MODE="LIST"; else usage; fi
+            ;;
+        'f')
+            if [[ -z $MODE ]] ; then MODE="PATH"; else usage; fi
             ;;
         'h')
             usage
@@ -162,6 +166,9 @@ case $MODE in
         ;;
     'APPEND')
         cat /dev/stdin >> "$TARGET_PATH"
+        ;;
+    'PATH')
+        echo "$TARGET_PATH"
         ;;
     '')
         # Edit it...

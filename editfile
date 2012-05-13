@@ -141,14 +141,18 @@ if [[ $# -gt 1 ]]; then
     usage
 fi
 
+# get path to the file. Also get file path to use for
+# history in the TRACK mode.
 if [[ -n "$1" ]]; then
     # edit a sub-file
     TARGET_DIR=$EDITFILE_DIR/$(basename $0)
     mkdir -p $TARGET_DIR
     TARGET_PATH="$TARGET_DIR/$1"
+    HIST_FILE="$TARGET_DIR/.hist.$1"
 else
     # edit the 'main' file
     TARGET_PATH="$EDITFILE_DIR/${MAJOR_NAME}"
+    HIST_FILE="$EDITFILE_DIR/.hist.${MAJOR_NAME}"
 fi
 
 # support for various extensions.
@@ -176,7 +180,6 @@ case $MODE in
         ;;
     'TRACK')
         now=$(date '+%Y/%m/%d %H:%M')
-        HIST_FILE="$(dirname $TARGET_PATH)/.hist.$(basename $TARGET_PATH)"
         # read history from previous
         history -r $HIST_FILE
         while read -ep "$now >> " track_input ; do

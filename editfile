@@ -101,13 +101,14 @@ usage () {
     echo "  -a    append stdin to the file"
     echo "  -l    output the file to stdout"
     echo "  -f    output file path name to stdout"
+    echo "  -t    time track mode"
     echo " (Note these options are mutually exclusive)"
     echo
     exit 1
 }
 
 MODE='';
-while getopts "alfh" option ; do
+while getopts "alfth" option ; do
     case $option in
         'a')
             if [[ -z $MODE ]] ; then MODE="APPEND"; else usage; fi
@@ -117,6 +118,9 @@ while getopts "alfh" option ; do
             ;;
         'f')
             if [[ -z $MODE ]] ; then MODE="PATH"; else usage; fi
+            ;;
+        't')
+            if [[ -z $MODE ]] ; then MODE="TRACK"; else usage; fi
             ;;
         'h')
             usage
@@ -169,6 +173,24 @@ case $MODE in
         ;;
     'PATH')
         echo "$TARGET_PATH"
+        ;;
+    'TRACK')
+        now=$(date '+%Y/%m/%d %H:%M')
+        HIST_FILE="$(dirname $TARGET_PATH)/.hist.$(basename $TARGET_PATH)"
+        # read history from previous
+        history -r $HIST_FILE
+        while read -ep "$now >> " track_input ; do
+            if [[ -z $track_input ]] ; then
+                continue
+            fi
+            history -s $track_input
+            now=$(date '+%Y/%m/%d %H:%M')
+            echo "$now $track_input" >> ${TARGET_PATH}
+        done
+        # append current session to history
+        history -a $HIST_FILE
+        # ensure bash prompt starts on a new line
+        echo
         ;;
     '')
         # Edit it...

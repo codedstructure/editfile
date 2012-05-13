@@ -15,6 +15,7 @@ Normal Usage
       -a    append stdin to the file
       -l    output the file to stdout
       -f    output file path name to stdout
+      -t    time track mode
      (Note these options are mutually exclusive)
 
 The key thought behind ``editfile`` is that a user shouldn't have to specify two
@@ -35,7 +36,7 @@ each command, a category can also be given (though isn't necessary).
 Examples
 --------
 
-*These assume 'notes', 'todo' and 'blog' are editfile commands*::
+*These assume 'notes', 'todo', 'track' and 'blog' are editfile commands*::
 
     # start editing the file associated with the 'notes' command
     $ notes
@@ -66,6 +67,13 @@ Examples
 
     # once file exists, extension is optional (priority: .rst, .md, .txt)
     $ blog first-post  # will edit first-post.md
+
+    # using -t enters a mode where the user is prompted with date and time
+    # and enters text interactively. This is stored in the target file as
+    # well as being entered in a readline history file. Ctrl-D to exit.
+    $ track -t
+    2012/05/09 11:03 >> Add a new widget class to the WidgetFactory
+    2012/05/09 11:03 >> ^D
 
 File & folder layout
 --------------------

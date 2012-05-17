@@ -13,7 +13,7 @@ _list_files()
         return
     fi
     cd ~/Dropbox/editfile/$1 2> /dev/null || return
-    find * -maxdepth 1 -type f | sed 's/\.txt$//g' | sed 's/ /\\ /g'
+    find * -maxdepth 1 -type f 2> /dev/null | sed 's/\.txt$//g' | sed 's/ /\\ /g'
 }
 
 _editfile()

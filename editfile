@@ -183,11 +183,11 @@ case $MODE in
         # read history from previous
         history -r $HIST_FILE
         while read -ep "$now >> " track_input ; do
+            now=$(date '+%Y/%m/%d %H:%M')
             if [[ -z $track_input ]] ; then
                 continue
             fi
             history -s $track_input
-            now=$(date '+%Y/%m/%d %H:%M')
             echo "$now $track_input" >> ${TARGET_PATH}
         done
         # append current session to history

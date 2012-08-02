@@ -17,6 +17,7 @@ direct_usage () {
     echo " -l - list editfile command names"
     echo " -n <name> - make new editfile command name"
     echo " -d <name> - delete existing editfile command name"
+    echo " -s <pattern> - search for given pattern in editfile files"
     echo
 }
 
@@ -187,7 +188,9 @@ case $MODE in
             if [[ -z $track_input ]] ; then
                 continue
             fi
-            history -s $track_input
+            # use -- to indicate end to options e.g. if track_input
+            # starts with '->' which previously caused errors
+            history -s -- "$track_input"
             echo "$now $track_input" >> ${TARGET_PATH}
         done
         # append current session to history

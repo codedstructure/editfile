@@ -117,7 +117,7 @@ edit () {
 }
 
 usage () {
-    echo "Usage: $MAJOR_NAME [OPTIONS] [CATEGORY]"
+    echo "Usage: $MAJOR_NAME [CATEGORY] [OPTIONS]"
     echo "  default operation is to edit the file"
     echo
     echo "Options:"
@@ -126,15 +126,23 @@ usage () {
     echo "  -l    output the file to stdout"
     echo "  -f    output file path name to stdout"
     echo "  -s <pattern>"
-    echo "         search for given pattern"
+    echo "        search for given pattern"
     echo "  -t    time track mode"
     echo " (Note these options are mutually exclusive)"
     echo
     exit 1
 }
 
+CATEGORY=""
+if [[ -n $1 ]] && ! [[ $1 =~ ^- ]] ; then
+    # starts with something other than '-' - assume a category
+    CATEGORY=$1
+    shift
+fi
+
+OPTION_CHARS="alfsth"
 MODE='';
-while getopts "alfsth" option ; do
+while getopts "$OPTION_CHARS" option ; do
     case $option in
         'a')
             if [[ -z $MODE ]] ; then MODE="APPEND"; else usage; fi
@@ -164,21 +172,25 @@ done
 
 shift $(($OPTIND - 1))
 
-if [[ $MODE != "SEARCH" ]] && [[ $# -gt 1 ]]; then
-    echo "Too many arguments"
+# only 'search' can (and must) have additional arguments
+if [[ $MODE != "SEARCH" ]] && [[ -n $1 ]]; then
+    echo "Too many arguments: $@"
+    echo
+    usage
+elif [[ $MODE == "SEARCH" ]] && [[ -z $1 ]]; then
+    echo "Not enough arguments - search option requires pattern"
     echo
     usage
 fi
 
 # get path to the file. Also get file path to use for
 # history in the TRACK mode.
-if [[ -n "$1" ]]; then
+if [[ -n "$CATEGORY" ]]; then
     # edit a sub-file
     TARGET_DIR=$EDITFILE_DIR/$(basename $0)
     mkdir -p $TARGET_DIR
-    TARGET_PATH="$TARGET_DIR/$1"
-    HIST_FILE="$TARGET_DIR/.hist.$1"
-    shift # needed for -s to just take remainder
+    TARGET_PATH="$TARGET_DIR/$CATEGORY"
+    HIST_FILE="$TARGET_DIR/.hist.$CATEGORY"
 else
     # edit the 'main' file
     TARGET_PATH="$EDITFILE_DIR/${MAJOR_NAME}"
@@ -209,7 +221,7 @@ case $MODE in
         echo "$TARGET_PATH"
         ;;
     'SEARCH')
-        grep -Hn --color "$@" "$TARGET_PATH"
+        grep -n --color "$@" "$TARGET_PATH"
         ;;
     'TRACK')
         now=$(date '+%Y/%m/%d %H:%M')

@@ -15,6 +15,8 @@ Normal Usage
       -a    append stdin to the file
       -l    output the file to stdout
       -f    output file path name to stdout
+      -s <pattern>
+            search for given pattern
       -t    time track mode
      (Note these options are mutually exclusive)
 
@@ -51,19 +53,19 @@ Examples
     # edit the 'errands' file in the notes namespace with emacs
     $ EDITOR=emacs notes errands
 
-    $ notes -l errands   # as you expect
+    $ notes errands -l  # as you expect
 
-    $ blog -f editfile
+    $ blog editfile -f
     /home/ben/Dropbox/editfile/blog/editfile.md
 
     # append content of 'todo' to 'notes/errands'
-    $ todo -l | notes -a errands
+    $ todo -l | notes errands -a
 
     # can be given .rst or .md extension to override .txt default
     $ blog first-post.md
 
     # edit two different things at once, sort of bypassing editfile :-)
-    vim $(notes -f) (work -f planning)
+    vim $(notes -f) (work planning -f)
 
     # once file exists, extension is optional (priority: .rst, .md, .txt)
     $ blog first-post  # will edit first-post.md
@@ -76,8 +78,12 @@ Examples
     2012/05/09 11:03 >> ^D
 
     # moving a note from one 'base' to another
-    $ notes -l super_secret_project | work -a super_secret_project
-    $ rm $(notes -f super_secret_project)
+    $ notes super_secret_project -l | work super_secret_project -a
+    $ rm $(notes super_secret_project -f)
+
+    # search through the given note for 'password'
+    $ notes secret_project -s password
+    ...
 
 File & folder layout
 --------------------
@@ -126,9 +132,8 @@ For example, ``notes <tab>`` above would result in a completion containing at
 least ``testing``. This is a useful way of checking which sub-files exist for
 each editfile command.
 
-If options (-a, -l, -f) are given, then tab completion still occurs after the
-option, for example ``notes -l <tab>`` will still auto-complete the notes
-sub-files.
+If options (-a, -l, -f) are given, these should be provided after the category
+(if it exists).
 
 Direct use of 'editfile'
 ------------------------

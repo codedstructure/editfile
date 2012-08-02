@@ -23,11 +23,6 @@ _editfile()
     curw=${COMP_WORDS[COMP_CWORD]}
     # only offer expansions if nothing currently there
     LIMIT=3
-    # if the previous word is an option which can take
-    # a category argument, then don't stop yet!
-    if [[ ${COMP_WORDS[${#COMP_WORDS[@]} - 2]} =~ -[alf] ]] ; then
-        LIMIT=4
-    fi
     if [[ ${#COMP_WORDS[@]} -lt $LIMIT ]] ; then
         saveIFS=$IFS
         IFS=$'\n'

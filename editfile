@@ -73,6 +73,21 @@ if [[ $MAJOR_NAME = "editfile" ]] ; then
             rm -i $TARGET
             exit 0
             ;;
+        '-s')
+            if [[ -z $2 ]] ; then
+                echo "editfile -s requires a search pattern"
+                direct_usage
+                exit 1
+            fi
+            # the pattern can be multiple things long...
+            shift
+            PATTERN="$@"
+            # enumerate editfile notes using compgen. Note this is quite slow...
+            pushd $EDITFILE_DIR > /dev/null
+            find . -type f \( -name \*.txt -o -name \*.rst -o -name \*.md \) -print0 | xargs -0 grep -Hn --color "$PATTERN"
+            popd > /dev/null
+            exit 0
+            ;;
     esac
 
     direct_usage

@@ -75,6 +75,10 @@ Examples
     2012/05/09 11:03 >> Add a new widget class to the WidgetFactory
     2012/05/09 11:03 >> ^D
 
+    # moving a note from one 'base' to another
+    $ notes -l super_secret_project | work -a super_secret_project
+    $ rm $(notes -f super_secret_project)
+
 File & folder layout
 --------------------
 
@@ -144,6 +148,9 @@ are three options:
 -d <name>
   delete an existing ``editfile`` symlink. This could be anywhere on the path,
   but it is checked that it really is a symlink to the ``editfile`` executable.
+
+-s <pattern>
+  search ``editfile`` files for the given pattern, displaying the results
 
 Default installation
 --------------------

@@ -5,6 +5,14 @@
 # Note various things are wrapped in double-quotes to ensure
 # that things with spaces are handled OK.
 
+
+# TODO: maybe 'base secondlevel [option]' is better than 'base [option] secondlevel'
+# except then -s can't work well to determine whether it should make secondlevel
+# or whether secondlevel is the searchterm in something...
+
+# maybe only create secondlevel if not search?
+
+
 EDITFILE_DIR=~/Dropbox/editfile
 mkdir -p $EDITFILE_DIR  # ensure this exists
 MAJOR_NAME=$(basename "$0")
@@ -117,6 +125,8 @@ usage () {
     echo "  -a    append stdin to the file"
     echo "  -l    output the file to stdout"
     echo "  -f    output file path name to stdout"
+    echo "  -s <pattern>"
+    echo "         search for given pattern"
     echo "  -t    time track mode"
     echo " (Note these options are mutually exclusive)"
     echo
@@ -124,7 +134,7 @@ usage () {
 }
 
 MODE='';
-while getopts "alfth" option ; do
+while getopts "alfsth" option ; do
     case $option in
         'a')
             if [[ -z $MODE ]] ; then MODE="APPEND"; else usage; fi
@@ -137,6 +147,9 @@ while getopts "alfth" option ; do
             ;;
         't')
             if [[ -z $MODE ]] ; then MODE="TRACK"; else usage; fi
+            ;;
+        's')
+            if [[ -z $MODE ]] ; then MODE="SEARCH"; else usage; fi
             ;;
         'h')
             usage
@@ -151,7 +164,7 @@ done
 
 shift $(($OPTIND - 1))
 
-if [[ $# -gt 1 ]]; then
+if [[ $MODE != "SEARCH" ]] && [[ $# -gt 1 ]]; then
     echo "Too many arguments"
     echo
     usage
@@ -165,6 +178,7 @@ if [[ -n "$1" ]]; then
     mkdir -p $TARGET_DIR
     TARGET_PATH="$TARGET_DIR/$1"
     HIST_FILE="$TARGET_DIR/.hist.$1"
+    shift # needed for -s to just take remainder
 else
     # edit the 'main' file
     TARGET_PATH="$EDITFILE_DIR/${MAJOR_NAME}"
@@ -193,6 +207,9 @@ case $MODE in
         ;;
     'PATH')
         echo "$TARGET_PATH"
+        ;;
+    'SEARCH')
+        grep -Hn --color "$@" "$TARGET_PATH"
         ;;
     'TRACK')
         now=$(date '+%Y/%m/%d %H:%M')

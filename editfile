@@ -228,14 +228,34 @@ case $MODE in
         # read history from previous
         history -r $HIST_FILE
         while read -ep "$now >> " track_input ; do
+            STORE_RESULT="no"
+            COMMAND=""
             now=$(date '+%Y/%m/%d %H:%M')
             if [[ -z $track_input ]] ; then
                 continue
             fi
+            if [[ $track_input =~ ^\![^\!] ]] ; then
+                # execute and display, don't store command or result
+                COMMAND=$(echo $track_input | cut -c2-)
+            elif [[ $track_input =~ ^\! ]] ; then
+                # execute and display, store command and result
+                STORE_RESULT="yes"
+                COMMAND=$(echo $track_input | cut -c3-)
+            fi
             # use -- to indicate end to options e.g. if track_input
             # starts with '->' which previously caused errors
             history -s -- "$track_input"
+            if [[ -n ${COMMAND} ]] ; then
+                RESULT=$(eval ${COMMAND})
+                echo "${RESULT}"
+                if [[ ${STORE_RESULT} = "no" ]] ; then
+                    continue
+                fi
+            fi
             echo "$now $track_input" >> ${TARGET_PATH}
+            if [[ $STORE_RESULT = "yes" ]] && [[ -n ${RESULT} ]] ; then
+                echo "${RESULT}" >> ${TARGET_PATH}
+            fi
         done
         # append current session to history
         history -a $HIST_FILE

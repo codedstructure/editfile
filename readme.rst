@@ -135,6 +135,17 @@ each editfile command.
 If options (-a, -l, -f) are given, these should be provided after the category
 (if it exists).
 
+'Track' mode
+------------
+
+Using the ``-t`` option enters the 'time track' mode. In this mode, editfile
+enters a readline loop, where entered text is saved to the target file with
+a timestamp.
+
+In this mode, shell commands can be given by preceding them with '!'. A single
+exclamation mark simply runs the command; double '!!command' inserts the result
+into the target file.
+
 Direct use of 'editfile'
 ------------------------
 

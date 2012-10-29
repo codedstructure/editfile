@@ -2,16 +2,6 @@
 
 # Ben Bass 2012 @codedstructure
 
-# Note various things are wrapped in double-quotes to ensure
-# that things with spaces are handled OK.
-
-
-# TODO: maybe 'base secondlevel [option]' is better than 'base [option] secondlevel'
-# except then -s can't work well to determine whether it should make secondlevel
-# or whether secondlevel is the searchterm in something...
-
-# maybe only create secondlevel if not search?
-
 
 EDITFILE_DIR=~/Dropbox/editfile
 mkdir -p $EDITFILE_DIR  # ensure this exists
@@ -90,7 +80,7 @@ if [[ $MAJOR_NAME = "editfile" ]] ; then
             # the pattern can be multiple things long...
             shift
             PATTERN="$@"
-            # enumerate editfile notes using compgen. Note this is quite slow...
+            # just search everything under EDITFIlE_DIR
             pushd $EDITFILE_DIR > /dev/null
             find . -type f \( -name \*.txt -o -name \*.rst -o -name \*.md \) -print0 | xargs -0 grep -Hn --color "$PATTERN"
             popd > /dev/null

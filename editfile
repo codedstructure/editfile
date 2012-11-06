@@ -118,6 +118,8 @@ usage () {
     echo "  -s <pattern>"
     echo "        search for given pattern"
     echo "  -t    time track mode"
+    echo "  -i    import [FILEPATH]"
+    echo "  -x    export to [FILEPATH.tar]"
     echo " (Note these options are mutually exclusive)"
     echo
     exit 1
@@ -130,7 +132,7 @@ if [[ -n $1 ]] && ! [[ $1 =~ ^- ]] ; then
     shift
 fi
 
-OPTION_CHARS="alfsth"
+OPTION_CHARS="alfstixh"
 MODE='';
 while getopts "$OPTION_CHARS" option ; do
     case $option in
@@ -149,6 +151,12 @@ while getopts "$OPTION_CHARS" option ; do
         's')
             if [[ -z $MODE ]] ; then MODE="SEARCH"; else usage; fi
             ;;
+        'i')
+            if [[ -z $MODE ]] ; then MODE="IMPORT"; else usage; fi
+            ;;
+        'x')
+            if [[ -z $MODE ]] ; then MODE="EXPORT"; else usage; fi
+            ;;
         'h')
             usage
             ;;
@@ -162,13 +170,13 @@ done
 
 shift $(($OPTIND - 1))
 
-# only 'search' can (and must) have additional arguments
-if [[ $MODE != "SEARCH" ]] && [[ -n $1 ]]; then
+# only search/import/export can (and must) have additional arguments
+if ! [[ $MODE =~ SEARCH|IMPORT|EXPORT ]] && [[ -n $1 ]]; then
     echo "Too many arguments: $@"
     echo
     usage
-elif [[ $MODE == "SEARCH" ]] && [[ -z $1 ]]; then
-    echo "Not enough arguments - search option requires pattern"
+elif [[ $MODE =~ SEARCH|IMPORT|EXPORT ]]  && [[ -z $1 ]]; then
+    echo "Not enough arguments - $MODE option requires an argument"
     echo
     usage
 fi
@@ -181,10 +189,12 @@ if [[ -n "$CATEGORY" ]]; then
     mkdir -p $TARGET_DIR
     TARGET_PATH="$TARGET_DIR/$CATEGORY"
     HIST_FILE="$TARGET_DIR/.hist.$CATEGORY"
+    ASSETS_PATH="$TARGET_DIR/$CATEGORY.assets"
 else
     # edit the 'main' file
     TARGET_PATH="$EDITFILE_DIR/${MAJOR_NAME}"
     HIST_FILE="$EDITFILE_DIR/.hist.${MAJOR_NAME}"
+    ASSETS_PATH="$TARGET_DIR/${MAJOR_NAME}.assets"
 fi
 
 # support for various extensions.
@@ -212,6 +222,19 @@ case $MODE in
         ;;
     'SEARCH')
         grep -n --color "$@" "$TARGET_PATH"
+        ;;
+    'IMPORT')
+        mkdir -p "${ASSETS_PATH}"
+        cp "$1" "${ASSETS_PATH}"
+        echo "Imported $1 to ${ASSETS_PATH}"
+        ;;
+    'EXPORT')
+        EXT_PATH=""
+        if test -d ${ASSETS_PATH} ; then
+            EXT_PATH="$(basename ${ASSETS_PATH})"
+        fi
+        (cd "$(dirname ${TARGET_PATH})"; tar -cf "$1" $(basename "$TARGET_PATH") ${EXT_PATH})
+        echo "Exported ${TARGET_PATH} bundle to  $1"
         ;;
     'TRACK')
         now=$(date '+%Y/%m/%d %H:%M')

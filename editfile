@@ -29,6 +29,12 @@ direct_usage () {
     echo
 }
 
+usage_die () {
+    echo $1 >&2
+    direct_usage >&2    
+    exit 2
+}
+
 if [[ $MAJOR_NAME = "editfile" ]] ; then
     EDITFILE_PATH=$(which editfile)
     case $1 in
@@ -44,22 +50,16 @@ if [[ $MAJOR_NAME = "editfile" ]] ; then
             ;;
         '-n')
             if [[ -z $2 ]] ; then
-                echo "editfile -n requires command name argument." >&2
-                direct_usage
-                exit 1
+                usage_die "editfile -n requires command name argument."
             fi
             # This could override an alias. Perhaps use compgen -c,
             # but that seems dodgy too (and is likely slow).
             NEW_TARGET="$(dirname $EDITFILE_PATH)/$2"
             if which $2 > /dev/null ; then
-                echo "Not overriding existing command $(which $2)" >&2
-                direct_usage
-                exit 1
+                usage_die "Not overriding existing command $(which $2)"
             fi
             if test -e $NEW_TARGET ; then
-                echo "Not replacing existing file $NEW_TARGET" >&2
-                direct_usage
-                exit 1
+                usage_die "Not replacing existing file $NEW_TARGET"
             fi
             ln -s $EDITFILE_PATH $NEW_TARGET
             echo "Created new editfile command '$2'"
@@ -67,25 +67,19 @@ if [[ $MAJOR_NAME = "editfile" ]] ; then
             ;;
         '-d')
             if [[ -z $2 ]] ; then
-                echo "editfile -d requires command name argument." >&2
-                direct_usage
-                exit 1
+                usage_die "editfile -d requires command name argument."
             fi
             # ensure this is a symlink to editfile
             TARGET=$(which $2)
             if ! [[ -L $TARGET && $(readlink $TARGET) == $EDITFILE_PATH ]]; then
-                echo "$2 is not an editfile command" >&2
-                direct_usage
-                exit 1
+                usage_die "$2 is not an editfile command"
             fi
             rm -i $TARGET
             exit 0
             ;;
         '-s')
             if [[ -z $2 ]] ; then
-                echo "editfile -s requires a search pattern"
-                direct_usage
-                exit 1
+                usage_die "editfile -s requires a search pattern"
             fi
             # the pattern can be multiple things long...
             shift
@@ -102,9 +96,40 @@ if [[ $MAJOR_NAME = "editfile" ]] ; then
     exit 2
 fi
 
+die () {
+    echo $1 >&2
+    exit 1
+}
+
 edit () {
-    # Determine editor to use
-    if [[ -n "${EDITOR}" ]] ; then
+    # Determine editor to use.
+    # TODO: make this more generic than it is right now!
+    if [[ $TARGET_PATH =~ \.(doc|docx|odt)$ ]] ; then
+        # 'word' documents
+        # Note that it fails to create a none-existing document,
+        # so create one here!
+        DOC_TEMPLATE_PATH=${EDITFILE_DIR}/_template/blank.odt
+        [[ -s "$1" ]] || cp "$DOC_TEMPLATE_PATH" "$1" 2>/dev/null || die "No $(basename ${DOC_TEMPLATE_PATH}) in ${DOC_TEMPLATE_PATH}"
+        EDIT="soffice --writer"
+    elif [[ $TARGET_PATH =~ \.(xls|xlsx|ods)$ ]] ; then
+        # 'spreadsheet' documents
+        # Note that it fails to create a none-existing document,
+        # so create one here!
+        SS_TEMPLATE_PATH=${EDITFILE_DIR}/_template/blank.ods
+        [[ -s "$1" ]] || cp "$SS_TEMPLATE_PATH" "$1" 2>/dev/null || die "No $(basename ${SS_TEMPLATE_PATH}) in ${SS_TEMPLATE_PATH}"
+        EDIT="soffice --calc"
+    elif [[ $TARGET_PATH =~ \.mm$ ]] ; then
+        # support mindmap 'documents' with 'freemind' editor.
+        # Note that it fails to create a none-existing document,
+        # so create one here!
+        [[ -s "$1" ]] || echo '<map version="0.9.0" />' > "$1"
+        EDIT="freemind"
+    elif [[ $TARGET_PATH =~ \.dia$ ]] ; then
+        # support 'dia'grams with 'dia'...
+        DIA_TEMPLATE_PATH=${EDITFILE_DIR}/_template/blank.dia
+        [[ -s "$1" ]] || cp "$DIA_TEMPLATE_PATH" "$1" 2>/dev/null || die "No blank.dia in ${DIA_TEMPLATE_PATH}"
+        EDIT="dia --nonew --nosplash"
+    elif [[ -n "${EDITOR}" ]] ; then
         EDIT=$EDITOR
     elif $(which gedit) ; then
         EDIT="gedit -b"  # default fallback if present
@@ -113,7 +138,7 @@ edit () {
     fi
 
     # Edit it...
-    $EDIT "$1"
+    exec $EDIT "$1"
 }
 
 usage () {
@@ -202,7 +227,8 @@ fi
 # Up to the user to change / create ext of different type.
 # Hopefully once an editor opens the user can see which
 # actual file got selected :-)
-if ! [[ $TARGET_PATH =~ \.(rst|txt|md)$ ]] ; then
+# TODO: represent the list of supported file extensions somewhere.
+if ! [[ $TARGET_PATH =~ \.(rst|txt|md|mm|dia|doc|odt|docx|xls|ods|xlsx)$ ]] ; then
     for EXT in .rst .md .txt ; do
         [[ -f "${TARGET_PATH}${EXT}" ]] && break
     done
@@ -248,17 +274,17 @@ case $MODE in
             if [[ -n ${COMMAND} ]] ; then
                 RESULT=$(eval ${COMMAND})
                 echo "${RESULT}"
-                if [[ ${STORE_RESULT} = "no" ]] ; then
+                if [[ "${STORE_RESULT}" = "no" ]] ; then
                     continue
                 fi
             fi
-            echo "$now $track_input" >> ${TARGET_PATH}
-            if [[ $STORE_RESULT = "yes" ]] && [[ -n ${RESULT} ]] ; then
-                echo "${RESULT}" >> ${TARGET_PATH}
+            echo "$now $track_input" >> "${TARGET_PATH}"
+            if [[ "$STORE_RESULT" = "yes" ]] && [[ -n "${RESULT}" ]] ; then
+                echo "${RESULT}" >> "${TARGET_PATH}"
             fi
         done
         # append current session to history
-        history -a $HIST_FILE
+        history -a "$HIST_FILE"
         # ensure bash prompt starts on a new line
         echo
         ;;

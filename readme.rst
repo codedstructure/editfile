@@ -146,6 +146,39 @@ In this mode, shell commands can be given by preceding them with '!'. A single
 exclamation mark simply runs the command; double '!!command' inserts the result
 into the target file.
 
+Storing assets
+--------------
+
+``editfile`` is about reducing the friction in being able to write. No need to
+think about where the document ends up, no need to go through a long startup
+procedure when making a new document. And more. So in writing more, I found
+my next use-case is being able to store non-text data alongside the text.
+
+Ideally I'd like to be able to include a highly efficient DSL which creates
+SVG diagrams in all my documents, but I've not yet found anything ideal;
+blockdiag_ comes close, but I want something which is already *right* in it's
+default styling, and blockdiag isn't that, for me.
+
+.. _blockdiag: http://blockdiag.com
+
+Anyway, sometimes a diagram isn't enough anyway, and I need a photo, or a piece
+of music. Or some other binary file.
+
+Importing a file
+~~~~~~~~~~~~~~~~
+
+    $ blog a-wonderful-blog-post -i ~/photo1.jpg
+    $ blog a-wonderful-blog-post -i ~/photo2.jpg
+
+Exporting bundles
+~~~~~~~~~~~~~~~~~
+
+    $ blog a-wonderful-blog-post -x ~/blog-post.tar
+
+
+Exporting content
+~~~~~~~~~~~~~~~~~
+
 Direct use of 'editfile'
 ------------------------
 

@@ -179,6 +179,29 @@ Exporting bundles
 Exporting content
 ~~~~~~~~~~~~~~~~~
 
+TODO...
+
+Creating blank documents
+------------------------
+
+``editfile`` can be used for more than just creating text documents. If given
+a fully-qualified basename + extension, it can be used as a document launcher.
+For example, with a editfile category of 'work', the command
+'work super-secret-project.odt' would start libreoffice running. The currently
+supported document formats are as follows:
+
+    ================= =======
+    Extension         Program
+    ================= =======
+    .mm               freemind
+    .dia              dia
+    .doc, .odt, .docx soffice --writer
+    .xls, .ods, .xlsx soffice --calc
+    ================= =======
+
+(Note `soffice` may refer to libreoffice, openoffice, or even the original
+staroffice - like sensible forks, they can all use the same command name)
+
 Direct use of 'editfile'
 ------------------------
 

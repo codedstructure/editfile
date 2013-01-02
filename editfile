@@ -2,6 +2,29 @@
 
 # Ben Bass 2012-2013 @codedstructure
 
+if [[ -e /Applications/FreeMind.app/Contents/MacOS/JavaApplicationStub ]] ; then
+    FREEMIND=/Applications/FreeMind.app/Contents/MacOS/JavaApplicationStub
+else
+    FREEMIND=freemind
+fi
+
+if [[ -e /Applications/Dia.app/Contents/Resources/bin/dia ]] ; then
+    DIA=/Applications/Dia.app/Contents/Resources/bin/dia
+else
+    DIA=dia
+fi
+
+if [[ -e /Applications/LibreOffice.app/Contents/MacOS/soffice ]] ; then
+    SOFFICE=/Applications/LibreOffice.app/Contents/MacOS/soffice
+else
+    SOFFICE=soffice
+fi
+
+if [[ -e /Applications/Inkscape.app/Contents/MacOS/Inkscape ]] ; then
+    INKSCAPE=/Applications/Inkscape.app/Contents/MacOS/Inkscape
+else
+    INKSCAPE=inkscape
+fi
 
 EDITFILE_DIR=~/Dropbox/editfile
 mkdir -p $EDITFILE_DIR  # ensure this exists
@@ -100,30 +123,30 @@ edit () {
         # so create one here!
         DOC_TEMPLATE_PATH=${EDITFILE_DIR}/_template/blank.odt
         [[ -s "$1" ]] || cp "$DOC_TEMPLATE_PATH" "$1" 2>/dev/null || die "No $(basename ${DOC_TEMPLATE_PATH}) in ${DOC_TEMPLATE_PATH}"
-        EDIT="soffice --writer"
+        EDIT="${SOFFICE} --writer"
     elif [[ $TARGET_PATH =~ \.(xls|xlsx|ods)$ ]] ; then
         # 'spreadsheet' documents
         # Note that it fails to create a none-existing document,
         # so create one here!
         SS_TEMPLATE_PATH=${EDITFILE_DIR}/_template/blank.ods
         [[ -s "$1" ]] || cp "$SS_TEMPLATE_PATH" "$1" 2>/dev/null || die "No $(basename ${SS_TEMPLATE_PATH}) in ${SS_TEMPLATE_PATH}"
-        EDIT="soffice --calc"
+        EDIT="${SOFFICE} --calc"
     elif [[ $TARGET_PATH =~ \.mm$ ]] ; then
         # support mindmap 'documents' with 'freemind' editor.
         # Note that it fails to create a none-existing document,
         # so create one here!
         [[ -s "$1" ]] || echo '<map version="0.9.0" />' > "$1"
-        EDIT="freemind"
+        EDIT="${FREEMIND}"
     elif [[ $TARGET_PATH =~ \.dia$ ]] ; then
         # support 'dia'grams with 'dia'...
         DIA_TEMPLATE_PATH=${EDITFILE_DIR}/_template/blank.dia
         [[ -s "$1" ]] || cp "$DIA_TEMPLATE_PATH" "$1" 2>/dev/null || die "No blank.dia in ${DIA_TEMPLATE_PATH}"
-        EDIT="dia --nonew --nosplash"
+        EDIT="${DIA} --nonew --nosplash"
     elif [[ $TARGET_PATH =~ \.svg$ ]] ; then
         # support svg with inkscape...
         SVG_TEMPLATE_PATH=${EDITFILE_DIR}/_template/blank.svg
         [[ -s "$1" ]] || cp "$SVG_TEMPLATE_PATH" "$1" 2>/dev/null || die "No blank.svg in ${SVG_TEMPLATE_PATH}"
-        EDIT="inkscape"
+        EDIT="${INKSCAPE}"
     elif [[ -n "${EDITOR}" ]] ; then
         EDIT=$EDITOR
     elif $(which gedit) ; then

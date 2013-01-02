@@ -1,7 +1,7 @@
 # add completion for editfile categories
 # note that this file must be sourced
 #
-# Ben Bass 2012 @codedstructure
+# Ben Bass 2012-2013 @codedstructure
 
 # This doesn't declare global constants as it gets sourced
 # and doesn't want to pollute the environment. But it does

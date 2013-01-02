@@ -257,4 +257,4 @@ or::
     $ ln -s editfile blog
     $ ln -s editfile todo
 
-*Ben Bass 2012 @codedstructure*
+*Ben Bass 2012-2013 @codedstructure*

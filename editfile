@@ -2,32 +2,39 @@
 
 # Ben Bass 2012-2013 @codedstructure
 
-if [[ -e /Applications/FreeMind.app/Contents/MacOS/JavaApplicationStub ]] ; then
+if [[ -e /Applications/FreeMind.app ]] ; then
     FREEMIND=/Applications/FreeMind.app/Contents/MacOS/JavaApplicationStub
 else
     FREEMIND=freemind
 fi
 
-if [[ -e /Applications/Dia.app/Contents/Resources/bin/dia ]] ; then
-    DIA=/Applications/Dia.app/Contents/Resources/bin/dia
+if [[ -e /Applications/Dia.app ]] ; then
+    # By default dia on Mac doesn't take command line args.
+    # Follow the instructions here to fix this:
+    # http://apple.stackexchange.com/a/56797
+    DIA=/Applications/Dia.app/Contents/Resources/bin/dia-cmd
 else
     DIA=dia
 fi
 
-if [[ -e /Applications/LibreOffice.app/Contents/MacOS/soffice ]] ; then
+if [[ -e /Applications/LibreOffice.app ]] ; then
     SOFFICE=/Applications/LibreOffice.app/Contents/MacOS/soffice
 else
     SOFFICE=soffice
 fi
 
-if [[ -e /Applications/Inkscape.app/Contents/MacOS/Inkscape ]] ; then
-    INKSCAPE=/Applications/Inkscape.app/Contents/MacOS/Inkscape
+if [[ -e /Applications/Inkscape.app ]] ; then
+    # running inkscape with command line args on Mac requires
+    # (cd /Applications/Inkscape.app; Contents/Resources/bin/inkscape $*)
+    INKSCAPE="Contents/Resources/bin/inkscape"
+    PROGRAM_START_DIR="/Applications/Inkscape.app"
 else
     INKSCAPE=inkscape
 fi
 
 EDITFILE_DIR=~/Dropbox/editfile
 mkdir -p $EDITFILE_DIR  # ensure this exists
+LOGFILE=${EDITFILE_DIR}/editfile.log
 MAJOR_NAME=$(basename "$0")
 
 direct_usage () {
@@ -44,7 +51,7 @@ direct_usage () {
 
 usage_die () {
     echo $1 >&2
-    direct_usage >&2    
+    direct_usage >&2
     exit 2
 }
 
@@ -156,7 +163,12 @@ edit () {
     fi
 
     # Edit it...
-    exec $EDIT "$1"
+    if [[ -n ${PROGRAM_START_DIR} ]] ; then
+        cd ${PROGRAM_START_DIR}
+    fi
+    echo "$EDIT $1" >> ${LOGFILE}
+    # lots of things write to stderr; hide that away in the logfile.
+    exec $EDIT "$1" 2>> ${LOGFILE}
 }
 
 usage () {

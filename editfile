@@ -322,7 +322,10 @@ case $MODE in
                 COMMAND=$(echo $track_input | cut -c3-)
             elif [[ $track_input =~ ^\^ ]] ; then
                 # replace previous line with content following initial '^'
-                sed -i '$d' ${TARGET_PATH}  # TODO: check BSD/Mac compatibility
+                #
+                # delete last line. note BSD/OS X require a backup extension
+                # to be specified (even if blank) unlike gnu sed.
+                sed -i"~" '$d' ${TARGET_PATH}
                 # remove initial '^'
                 track_input=$(echo "$track_input" | cut -c 2-)
             fi

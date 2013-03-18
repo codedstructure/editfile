@@ -146,6 +146,12 @@ In this mode, shell commands can be given by preceding them with '!'. A single
 exclamation mark simply runs the command; double '!!command' inserts the result
 into the target file.
 
+In addition, if a line is entered incorrectly then it can be replaced by
+prefixing the next entry with the '^' character, e.g.
+
+    2013/03/18 20:11 >> this is a
+    2013/03/18 20:11 >> ^this is a test
+
 Storing assets
 --------------
 

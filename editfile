@@ -308,6 +308,11 @@ case $MODE in
                 # execute and display, store command and result
                 STORE_RESULT="yes"
                 COMMAND=$(echo $track_input | cut -c3-)
+            elif [[ $track_input =~ ^\^ ]] ; then
+                # replace previous line with content following initial '^'
+                sed -i '$d' ${TARGET_PATH}  # TODO: check BSD/Mac compatibility
+                # remove initial '^'
+                track_input=$(echo "$track_input" | cut -c 2-)
             fi
             # use -- to indicate end to options e.g. if track_input
             # starts with '->' which previously caused errors

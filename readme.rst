@@ -149,8 +149,15 @@ into the target file.
 In addition, if a line is entered incorrectly then it can be replaced by
 prefixing the next entry with the '^' character, e.g.
 
+::
+
     2013/03/18 20:11 >> this is a
     2013/03/18 20:11 >> ^this is a test
+
+will result in just a single line 'this is a test' being stored. Note that
+this functionality needs to edit the current file, so for safety a backup
+file is used to perform this operation, which will have the same name as the
+file being edited with a suffix of '~' - the same format ``emacs`` uses.
 
 Storing assets
 --------------
@@ -172,12 +179,14 @@ of music. Or some other binary file.
 
 Importing a file
 ~~~~~~~~~~~~~~~~
+::
 
     $ blog a-wonderful-blog-post -i ~/photo1.jpg
     $ blog a-wonderful-blog-post -i ~/photo2.jpg
 
 Exporting bundles
 ~~~~~~~~~~~~~~~~~
+::
 
     $ blog a-wonderful-blog-post -x ~/blog-post.tar
 

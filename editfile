@@ -27,9 +27,17 @@ if [[ -e /Applications/Inkscape.app ]] ; then
     # running inkscape with command line args on Mac requires
     # (cd /Applications/Inkscape.app; Contents/Resources/bin/inkscape $*)
     INKSCAPE="Contents/Resources/bin/inkscape"
+    # TODO: this is flawed - setting this before we know Inkscape will be used
     PROGRAM_START_DIR="/Applications/Inkscape.app"
 else
     INKSCAPE=inkscape
+fi
+
+# Support for generic document opening
+if $(which -s xdg-open) ; then
+    OPEN_CMD="open"
+else
+    OPEN_CMD="xdg-open"
 fi
 
 EDITFILE_DIR=~/Dropbox/editfile
@@ -154,6 +162,10 @@ edit () {
         SVG_TEMPLATE_PATH=${EDITFILE_DIR}/_template/blank.svg
         [[ -s "$1" ]] || cp "$SVG_TEMPLATE_PATH" "$1" 2>/dev/null || die "No blank.svg in ${SVG_TEMPLATE_PATH}"
         EDIT="${INKSCAPE}"
+    elif [[ $TARGET_PATH =~ \.[[:alnum:]]+ ]] ; then
+        # this is a general 'open the OS-registered program for this document'
+        # request. Arguably many of the above could just use this ;-)
+        EDIT=$OPEN_CMD
     elif [[ -n "${EDITOR}" ]] ; then
         EDIT=$EDITOR
     elif $(which gedit) ; then
@@ -268,7 +280,8 @@ fi
 # Hopefully once an editor opens the user can see which
 # actual file got selected :-)
 # TODO: represent the list of supported file extensions somewhere.
-if ! [[ $TARGET_PATH =~ \.(rst|txt|md|mm|dia|svg|doc|odt|docx|xls|ods|xlsx)$ ]] ; then
+# TODO: - and consolidate the generic extension concept.
+if ! [[ $TARGET_PATH =~ \.(rst|txt|md|mm|dia|svg|doc|odt|docx|xls|ods|xlsx|[[:alnum:]]+)$ ]] ; then
     for EXT in .rst .md .txt ; do
         [[ -f "${TARGET_PATH}${EXT}" ]] && break
     done

@@ -35,9 +35,9 @@ fi
 
 # Support for generic document opening
 if $(which -s xdg-open) ; then
-    OPEN_CMD="open"
-else
     OPEN_CMD="xdg-open"
+else
+    OPEN_CMD="open"
 fi
 
 EDITFILE_DIR=~/Dropbox/editfile
@@ -162,9 +162,11 @@ edit () {
         SVG_TEMPLATE_PATH=${EDITFILE_DIR}/_template/blank.svg
         [[ -s "$1" ]] || cp "$SVG_TEMPLATE_PATH" "$1" 2>/dev/null || die "No blank.svg in ${SVG_TEMPLATE_PATH}"
         EDIT="${INKSCAPE}"
-    elif [[ $TARGET_PATH =~ \.[[:alnum:]]+ ]] ; then
+    elif [[ $CATEGORY =~ \.[[:alnum:]]+ ]] ; then
         # this is a general 'open the OS-registered program for this document'
         # request. Arguably many of the above could just use this ;-)
+        # Note we match against $CATEGORY rather than TARGET_CMD, so we get
+        # the original value, not with .txt or whatever appended
         EDIT=$OPEN_CMD
     elif [[ -n "${EDITOR}" ]] ; then
         EDIT=$EDITOR

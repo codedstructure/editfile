@@ -34,7 +34,7 @@ else
 fi
 
 # Support for generic document opening
-if $(which -s xdg-open) ; then
+if $(which xdg-open &> /dev/null) ; then
     OPEN_CMD="xdg-open"
 else
     OPEN_CMD="open"
@@ -321,13 +321,22 @@ case $MODE in
         now=$(date '+%Y/%m/%d %H:%M')
         # read history from previous
         history -r $HIST_FILE
+        BLANK_LINE="no"
         while read -ep "$now >> " track_input ; do
             STORE_RESULT="no"
             COMMAND=""
             now=$(date '+%Y/%m/%d %H:%M')
-            if [[ -z $track_input ]] ; then
+            if [[ -n $track_input ]] ; then
+                BLANK_LINE="no"
+            elif [[ ${BLANK_LINE} == "yes" ]] ; then
                 continue
             fi
+            if [[ -z $track_input || ${BLANK_LINE} == "yes" ]] ; then
+                # we record the first of a series of blank lines
+                # to allow separation of sections
+                BLANK_LINE="yes"
+            fi
+
             if [[ $track_input =~ ^\![^\!] ]] ; then
                 # execute and display, don't store command or result
                 COMMAND=$(echo $track_input | cut -c2-)

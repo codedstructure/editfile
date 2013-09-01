@@ -28,7 +28,7 @@ if [[ -e /Applications/Inkscape.app ]] ; then
     # (cd /Applications/Inkscape.app; Contents/Resources/bin/inkscape $*)
     INKSCAPE="Contents/Resources/bin/inkscape"
     # TODO: this is flawed - setting this before we know Inkscape will be used
-    PROGRAM_START_DIR="/Applications/Inkscape.app"
+    INKSCAPE_START_DIR="/Applications/Inkscape.app"
 else
     INKSCAPE=inkscape
 fi
@@ -162,6 +162,7 @@ edit () {
         SVG_TEMPLATE_PATH=${EDITFILE_DIR}/_template/blank.svg
         [[ -s "$1" ]] || cp "$SVG_TEMPLATE_PATH" "$1" 2>/dev/null || die "No blank.svg in ${SVG_TEMPLATE_PATH}"
         EDIT="${INKSCAPE}"
+        PROGRAM_START_DIR="${INKSCAPE_START_DIR}"
     elif [[ $CATEGORY =~ \.[[:alnum:]]+ ]] ; then
         # this is a general 'open the OS-registered program for this document'
         # request. Arguably many of the above could just use this ;-)

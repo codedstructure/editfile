@@ -327,7 +327,7 @@ case $MODE in
             STORE_RESULT="no"
             COMMAND=""
             now=$(date '+%Y/%m/%d %H:%M')
-            if [[ -n $track_input ]] ; then
+            if [[ -n $track_input ]] ; then  # note - no quotes
                 BLANK_LINE="no"
             elif [[ ${BLANK_LINE} == "yes" ]] ; then
                 continue
@@ -358,7 +358,9 @@ case $MODE in
             # starts with '->' which previously caused errors
             history -s -- "$track_input"
             if [[ -n ${COMMAND} ]] ; then
-                RESULT=$(eval ${COMMAND})
+                # Redirect tty back into the command so interactive
+                # programs can be used
+                RESULT=$(eval "${COMMAND} </dev/tty 2>&1 >/dev/tty")
                 echo "${RESULT}"
                 if [[ "${STORE_RESULT}" = "no" ]] ; then
                     continue

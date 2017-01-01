@@ -7,7 +7,7 @@ Normal Usage
 
 ::
 
-    Usage: EDITFILE_NAME [OPTIONS] [CATEGORY]
+    Usage: EDITFILE_NAME [CATEGORY] [OPTIONS]
       default operation is to edit the file
 
     Options:
@@ -18,6 +18,11 @@ Normal Usage
       -s <pattern>
             search for given pattern
       -t    time track mode
+      -c <name>
+            copy the given item to the new name
+      -i    import [FILEPATH]
+      -x    export to [FILEPATH.tar]
+      -d    delete the file
      (Note these options are mutually exclusive)
 
 The key thought behind ``editfile`` is that a user shouldn't have to specify two
@@ -53,7 +58,7 @@ Examples
     # edit the 'errands' file in the notes namespace with emacs
     $ EDITOR=emacs notes errands
 
-    $ notes errands -l  # as you expect
+    $ notes errands -l  # output content of the 'errands' category to stdout
 
     $ blog editfile -f
     /home/ben/Dropbox/editfile/blog/editfile.md
@@ -70,6 +75,15 @@ Examples
     # once file exists, extension is optional (priority: .rst, .md, .txt)
     $ blog first-post  # will edit first-post.md
 
+    # Copy the top level notes to a new editfile command 'jottings'.
+    # Note if 'notes' has any sub categories, these are *not* copied in this
+    # operation.
+    $ notes -c jottings
+
+    # Copy a sub-category, can be used as (very) primitive versioning...
+    $ blog first_draft -c second_draft
+    $ notes 2016_plan -c 2016_review
+
     # using -t enters a mode where the user is prompted with date and time
     # and enters text interactively. This is stored in the target file as
     # well as being entered in a readline history file. Ctrl-D to exit.
@@ -77,9 +91,13 @@ Examples
     2012/05/09 11:03 >> Add a new widget class to the WidgetFactory
     2012/05/09 11:03 >> ^D
 
+    # Deleting a note (this moves to a trash folder which will be displayed)
+    $ notes 2016_plan -d
+    Moved ~/Dropbox/editfile/notes/2016_plan.txt to trash: ~/Dropbox/editfile/trash/notes
+
     # moving a note from one 'base' to another
     $ notes super_secret_project -l | work super_secret_project -a
-    $ rm $(notes super_secret_project -f)
+    $ notes super_secret_project -d
 
     # search through the given note for 'password'
     $ notes secret_project -s password
@@ -272,4 +290,4 @@ or::
     $ ln -s editfile blog
     $ ln -s editfile todo
 
-*Ben Bass 2012-2013 @codedstructure*
+*Ben Bass 2012-2017 @codedstructure*

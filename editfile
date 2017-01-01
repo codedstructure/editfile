@@ -316,6 +316,9 @@ case $MODE in
         if ! [[ -f ${TARGET_PATH} ]] ; then
             die "Given target does not exist"
         fi
+        if [[ -z "$CATEGORY" ]]; then
+            editfile -n "$1" || die "Could not create new top-level editfile cmd"
+        fi
         CLONE_PATH="$(dirname ${TARGET_PATH})/$1"
         EXT="${TARGET_PATH##*.}"
         if [[ -n ${EXT} ]] && ! [[ "${CLONE_PATH}" =~ "${EXT}$" ]] ; then

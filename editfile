@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Ben Bass 2012-2013 @codedstructure
+# Ben Bass 2012-2017 @codedstructure
 
 if [[ -e /Applications/FreeMind.app ]] ; then
     FREEMIND=/Applications/FreeMind.app/Contents/MacOS/JavaApplicationStub
@@ -198,8 +198,11 @@ usage () {
     echo "  -s <pattern>"
     echo "        search for given pattern"
     echo "  -t    time track mode"
+    echo "  -c <name>"
+    echo "        copy the given item to the new name"
     echo "  -i    import [FILEPATH]"
     echo "  -x    export to [FILEPATH.tar]"
+    echo "  -d    delete the file"
     echo " (Note these options are mutually exclusive)"
     echo
     exit 1
@@ -212,7 +215,7 @@ if [[ -n $1 ]] && ! [[ $1 =~ ^- ]] ; then
     shift
 fi
 
-OPTION_CHARS="alfstixh"
+OPTION_CHARS="alfstcixdh"
 MODE='';
 while getopts "$OPTION_CHARS" option ; do
     case $option in
@@ -231,11 +234,17 @@ while getopts "$OPTION_CHARS" option ; do
         's')
             if [[ -z $MODE ]] ; then MODE="SEARCH"; else usage; fi
             ;;
+        'c')
+            if [[ -z $MODE ]] ; then MODE="COPY"; else usage; fi
+            ;;
         'i')
             if [[ -z $MODE ]] ; then MODE="IMPORT"; else usage; fi
             ;;
         'x')
             if [[ -z $MODE ]] ; then MODE="EXPORT"; else usage; fi
+            ;;
+        'd')
+            if [[ -z $MODE ]] ; then MODE="DELETE"; else usage; fi
             ;;
         'h')
             usage
@@ -251,11 +260,11 @@ done
 shift $(($OPTIND - 1))
 
 # only search/import/export can (and must) have additional arguments
-if ! [[ $MODE =~ SEARCH|IMPORT|EXPORT ]] && [[ -n $1 ]]; then
+if ! [[ $MODE =~ SEARCH|COPY|IMPORT|EXPORT ]] && [[ -n $1 ]]; then
     echo "Too many arguments: $@"
     echo
     usage
-elif [[ $MODE =~ SEARCH|IMPORT|EXPORT ]]  && [[ -z $1 ]]; then
+elif [[ $MODE =~ SEARCH|COPY|IMPORT|EXPORT ]]  && [[ -z $1 ]]; then
     echo "Not enough arguments - $MODE option requires an argument"
     echo
     usage
@@ -265,8 +274,8 @@ fi
 # history in the TRACK mode.
 if [[ -n "$CATEGORY" ]]; then
     # edit a sub-file
-    TARGET_DIR=$EDITFILE_DIR/$(basename $0)
-    mkdir -p $TARGET_DIR
+    TARGET_DIR="$EDITFILE_DIR/$MAJOR_NAME"
+    mkdir -p "$TARGET_DIR"
     TARGET_PATH="$TARGET_DIR/$CATEGORY"
     HIST_FILE="$TARGET_DIR/.hist.$CATEGORY"
     ASSETS_PATH="$TARGET_DIR/$CATEGORY.assets"
@@ -276,6 +285,7 @@ else
     HIST_FILE="$EDITFILE_DIR/.hist.${MAJOR_NAME}"
     ASSETS_PATH="$TARGET_DIR/${MAJOR_NAME}.assets"
 fi
+TRASH_DIR="${EDITFILE_DIR}/trash"
 
 # support for various extensions.
 # Will always default to .txt if nothing already there.
@@ -302,6 +312,17 @@ case $MODE in
     'PATH')
         echo "$TARGET_PATH"
         ;;
+    'COPY')
+        if ! [[ -f ${TARGET_PATH} ]] ; then
+            die "Given target does not exist"
+        fi
+        CLONE_PATH="$(dirname ${TARGET_PATH})/$1"
+        EXT="${TARGET_PATH##*.}"
+        if [[ -n ${EXT} ]] && ! [[ "${CLONE_PATH}" =~ "${EXT}$" ]] ; then
+            CLONE_PATH="${CLONE_PATH}.${EXT}"
+        fi
+        cp -i "${TARGET_PATH}" "${CLONE_PATH}"
+        ;;
     'SEARCH')
         grep -n --color "$@" "$TARGET_PATH"
         ;;
@@ -317,6 +338,18 @@ case $MODE in
         fi
         (cd "$(dirname ${TARGET_PATH})"; tar -cf "$1" $(basename "$TARGET_PATH") ${EXT_PATH})
         echo "Exported ${TARGET_PATH} bundle to  $1"
+        ;;
+    'DELETE')
+        [[ -f ${TARGET_PATH} ]] || die "Target for deletion ${TARGET_PATH} not found"
+        if [[ -n "${CATEGORY}" ]] ; then
+            TRASH_PATH="${TRASH_DIR}/${MAJOR_NAME}"
+        else
+            TRASH_PATH="${TRASH_DIR}"
+        fi
+
+        mkdir -p "${TRASH_PATH}"
+        mv "${TARGET_PATH}" ${TRASH_PATH}
+        echo "Moved ${TARGET_PATH} to trash: ${TRASH_PATH}"
         ;;
     'TRACK')
         now=$(date '+%Y/%m/%d %H:%M')

@@ -114,7 +114,7 @@ if [[ $MAJOR_NAME = "editfile" ]] ; then
             PATTERN="$@"
             # just search everything under EDITFIlE_DIR
             pushd $EDITFILE_DIR > /dev/null
-            find . -type f \( -name \*.txt -o -name \*.rst -o -name \*.md \) -print0 | xargs -0 grep -Hn --color "$PATTERN"
+            find . -type f \( -name \*.otl -name \*.txt -o -name \*.rst -o -name \*.md \) -print0 | xargs -0 grep -Hn --color "$PATTERN"
             popd > /dev/null
             exit 0
             ;;
@@ -163,6 +163,8 @@ edit () {
         [[ -s "$1" ]] || cp "$SVG_TEMPLATE_PATH" "$1" 2>/dev/null || die "No blank.svg in ${SVG_TEMPLATE_PATH}"
         EDIT="${INKSCAPE}"
         PROGRAM_START_DIR="${INKSCAPE_START_DIR}"
+    elif [[ -n $EDITOR && $CATEGORY =~ \.(md|rst|otl)$ ]] ; then
+        EDIT=$EDITOR
     elif [[ $CATEGORY =~ \.[[:alnum:]]+ ]] ; then
         # this is a general 'open the OS-registered program for this document'
         # request. Arguably many of the above could just use this ;-)
@@ -294,8 +296,8 @@ TRASH_DIR="${EDITFILE_DIR}/trash"
 # actual file got selected :-)
 # TODO: represent the list of supported file extensions somewhere.
 # TODO: - and consolidate the generic extension concept.
-if ! [[ $TARGET_PATH =~ \.(rst|txt|md|mm|dia|svg|doc|odt|docx|xls|ods|xlsx|[[:alnum:]]+)$ ]] ; then
-    for EXT in .rst .md .txt ; do
+if ! [[ $TARGET_PATH =~ \.(rst|txt|md|otl|mm|dia|svg|doc|odt|docx|xls|ods|xlsx|[[:alnum:]]+)$ ]] ; then
+    for EXT in .rst .md .otl .txt ; do
         [[ -f "${TARGET_PATH}${EXT}" ]] && break
     done
     TARGET_PATH="${TARGET_PATH}${EXT}"

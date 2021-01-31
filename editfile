@@ -80,6 +80,8 @@ direct_usage () {
     echo "this script is normally run from a symlink to it"
     echo
     echo "options when run directly:"
+    echo " completion - output bash completion script"
+    echo "    use with 'source <(editfile completion)"
     echo " -l - list editfile command names"
     echo " -n <name> - make new editfile command name"
     echo " -d <name> - delete existing editfile command name"
@@ -93,9 +95,51 @@ usage_die () {
     exit 2
 }
 
+completion () {
+    cat << EOF
+source ${EDITFILE_CONF}
+
+_list_files ()
+{
+    if ! [[ -d \${EDITFILE_DIR}/\$1 ]] ; then
+        return
+    fi
+    cd \${EDITFILE_DIR}/\$1 2> /dev/null || return
+    find * -maxdepth 1 -type f 2> /dev/null | sed 's/\.txt$//g' | sed 's/ /\\\\ /g'
+}
+
+_editfile ()
+{
+    local curw
+    COMPREPLY=()
+    curw=\${COMP_WORDS[COMP_CWORD]}
+    # only offer expansions if nothing currently there
+    LIMIT=3
+    if [[ \${#COMP_WORDS[@]} -lt \$LIMIT ]] ; then
+        saveIFS=\$IFS
+        IFS=\$'\n'
+        COMPREPLY=(\$(compgen -W '\$(_list_files \$1)' -- \$curw))
+        IFS=\$saveIFS
+    fi
+    return 0
+}
+
+EDITFILE_BIN=\$(which editfile)
+for p in \$(echo \$PATH | tr : \\\\n | sort | uniq); do
+    for ff in \$(find -L \$p -maxdepth 1 -perm -100 -samefile \${EDITFILE_BIN} 2> /dev/null); do
+        complete -o nospace -F _editfile \$(basename \$ff)
+    done
+done
+EOF
+}
+
 if [[ $MAJOR_NAME = "editfile" ]] ; then
     EDITFILE_PATH=$(which editfile)
     case $1 in
+        'completion')
+            completion
+            exit 0
+            ;;
         '-l')
             for p in $(echo $PATH | tr : \\n | sort | uniq); do
                 find -L $p -maxdepth 1 -perm -100 -samefile $EDITFILE_PATH 2> /dev/null |\

@@ -143,9 +143,11 @@ Examples
 Tab Completion
 --------------
 
-A tab-completion expander script is also provided as ``editfile-complete.sh``,
-which needs sourcing in an appropriate place in the shells where it is to be
-used. This provides expansion of second level items under each editfile command.
+Support for tab-completion in bash is provided by using ``editfile completion``,
+which should be sourced in an appropriate place (e.g. ``.bashrc``) using a
+command such as ``source <(editfile completion)``.
+
+This provides expansion of second level items under each editfile command.
 For example, ``notes <tab>`` above would result in a completion containing at
 least ``testing``. This is a useful way of checking which sub-files exist for
 each editfile command.
@@ -239,8 +241,8 @@ Direct use of 'editfile'
 ------------------------
 
 The normal use of ``editfile`` is via the commands symlinked to it, however by
-running editfile directly as a command, these symlinks can be managed. There
-are three options:
+running editfile directly as a command, these symlinks can be managed. The
+following options are available:
 
 -l
   list ``editfile`` command names (this looks across the entire ``PATH`` for

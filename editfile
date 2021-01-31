@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Ben Bass 2012-2017 @codedstructure
+# Ben Bass 2012-2021 @codedstructure
 
 if [[ -e /Applications/FreeMind.app ]] ; then
     FREEMIND=/Applications/FreeMind.app/Contents/MacOS/JavaApplicationStub
@@ -40,9 +40,39 @@ else
     OPEN_CMD="open"
 fi
 
-EDITFILE_DIR=~/Dropbox/editfile
+# Default directories, config setup
+
+if [[ -d ~/Dropbox ]] ; then
+    EDITFILE_DIR_DEFAULT=~/Dropbox/editfile
+else
+    EDITFILE_DIR_DEFAULT=~/Documents/editfile
+fi
+
+CONFIG_DIR=${XDG_CONFIG_HOME:-${HOME}/.config/editfile}
+mkdir -p ${CONFIG_DIR}
+EDITFILE_CONF=${CONFIG_DIR}/editfile.conf
+if ! [[ -s $EDITFILE_CONF ]] ; then
+    cat << EOF > ${EDITFILE_CONF}
+# editfile.conf - config for editfile.
+
+EDITFILE_DIR="$EDITFILE_DIR_DEFAULT"
+EDITFILE_TEMPLATE_DIR="\${EDITFILE_DIR}/_template"
+EDITFILE_TRASH_DIR="\${EDITFILE_DIR}/_trash"
+
+# The default editor to use for editing text-based formats (txt, md, etc)
+EDITFILE_TEXT_EDITOR=vim
+EOF
+fi
+
+source $EDITFILE_CONF
+EDITFILE_DIR=${EDITFILE_DIR:-$EDITFILE_DIR_DEFAULT}
+TEMPLATE_DIR=${EDITFILE_TEMPLATE_DIR:-${EDITFILE_DIR}/_template}
+TRASH_DIR=${EDITFILE_TRASH_DIR:-${EDITFILE_DIR}/_trash}
+
 mkdir -p $EDITFILE_DIR  # ensure this exists
 LOGFILE=${EDITFILE_DIR}/editfile.log
+
+# Now we know where we are.
 MAJOR_NAME=$(basename "$0")
 
 direct_usage () {
@@ -136,14 +166,14 @@ edit () {
         # 'word' documents
         # Note that it fails to create a none-existing document,
         # so create one here!
-        DOC_TEMPLATE_PATH=${EDITFILE_DIR}/_template/blank.odt
+        DOC_TEMPLATE_PATH=${TEMPLATE_DIR}/blank.odt
         [[ -s "$1" ]] || cp "$DOC_TEMPLATE_PATH" "$1" 2>/dev/null || die "No $(basename ${DOC_TEMPLATE_PATH}) in ${DOC_TEMPLATE_PATH}"
         EDIT="${SOFFICE} --writer"
     elif [[ $TARGET_PATH =~ \.(xls|xlsx|ods)$ ]] ; then
         # 'spreadsheet' documents
         # Note that it fails to create a none-existing document,
         # so create one here!
-        SS_TEMPLATE_PATH=${EDITFILE_DIR}/_template/blank.ods
+        SS_TEMPLATE_PATH=${TEMPLATE_DIR}/blank.ods
         [[ -s "$1" ]] || cp "$SS_TEMPLATE_PATH" "$1" 2>/dev/null || die "No $(basename ${SS_TEMPLATE_PATH}) in ${SS_TEMPLATE_PATH}"
         EDIT="${SOFFICE} --calc"
     elif [[ $TARGET_PATH =~ \.mm$ ]] ; then
@@ -154,17 +184,17 @@ edit () {
         EDIT="${FREEMIND}"
     elif [[ $TARGET_PATH =~ \.dia$ ]] ; then
         # support 'dia'grams with 'dia'...
-        DIA_TEMPLATE_PATH=${EDITFILE_DIR}/_template/blank.dia
+        DIA_TEMPLATE_PATH=${TEMPLATE_DIR}/blank.dia
         [[ -s "$1" ]] || cp "$DIA_TEMPLATE_PATH" "$1" 2>/dev/null || die "No blank.dia in ${DIA_TEMPLATE_PATH}"
         EDIT="${DIA} --nonew --nosplash"
     elif [[ $TARGET_PATH =~ \.svg$ ]] ; then
         # support svg with inkscape...
-        SVG_TEMPLATE_PATH=${EDITFILE_DIR}/_template/blank.svg
+        SVG_TEMPLATE_PATH=${TEMPLATE_DIR}/blank.svg
         [[ -s "$1" ]] || cp "$SVG_TEMPLATE_PATH" "$1" 2>/dev/null || die "No blank.svg in ${SVG_TEMPLATE_PATH}"
         EDIT="${INKSCAPE}"
         PROGRAM_START_DIR="${INKSCAPE_START_DIR}"
-    elif [[ -n $EDITOR && $CATEGORY =~ \.(md|rst|otl)$ ]] ; then
-        EDIT=$EDITOR
+    elif [[ $TARGET_PATH =~ \.(txt|md|rst|otl)$ ]] ; then
+        EDIT=${EDITFILE_TEXT_EDITOR:-$EDITOR}
     elif [[ $CATEGORY =~ \.[[:alnum:]]+ ]] ; then
         # this is a general 'open the OS-registered program for this document'
         # request. Arguably many of the above could just use this ;-)
@@ -287,7 +317,6 @@ else
     HIST_FILE="$EDITFILE_DIR/.hist.${MAJOR_NAME}"
     ASSETS_PATH="$TARGET_DIR/${MAJOR_NAME}.assets"
 fi
-TRASH_DIR="${EDITFILE_DIR}/trash"
 
 # support for various extensions.
 # Will always default to .txt if nothing already there.

@@ -376,6 +376,65 @@ if ! [[ $TARGET_PATH =~ \.(rst|txt|md|otl|mm|dia|svg|doc|odt|docx|xls|ods|xlsx|[
     TARGET_PATH="${TARGET_PATH}${EXT}"
 fi
 
+do_editfile_track () {
+    now=$(date '+%Y/%m/%d %H:%M')
+    # read history from previous
+    history -r $HIST_FILE
+    BLANK_LINE="no"
+    while read -ep "$now >> " track_input ; do
+        STORE_RESULT="no"
+        COMMAND=""
+        now=$(date '+%Y/%m/%d %H:%M')
+        if [[ -n $track_input ]] ; then  # note - no quotes
+            BLANK_LINE="no"
+        elif [[ ${BLANK_LINE} == "yes" ]] ; then
+            continue
+        fi
+        if [[ -z $track_input || ${BLANK_LINE} == "yes" ]] ; then
+            # we record the first of a series of blank lines
+            # to allow separation of sections
+            BLANK_LINE="yes"
+        fi
+
+        if [[ $track_input =~ ^\![^\!] ]] ; then
+            # execute and display, don't store command or result
+            COMMAND=$(echo $track_input | cut -c2-)
+        elif [[ $track_input =~ ^\! ]] ; then
+            # execute and display, store command and result
+            STORE_RESULT="yes"
+            COMMAND=$(echo $track_input | cut -c3-)
+        elif [[ $track_input =~ ^\^ ]] ; then
+            # replace previous line with content following initial '^'
+            #
+            # delete last line. note BSD/OS X require a backup extension
+            # to be specified (even if blank) unlike gnu sed.
+            sed -i"~" '$d' ${TARGET_PATH}
+            # remove initial '^'
+            track_input=$(echo "$track_input" | cut -c 2-)
+        fi
+        # use -- to indicate end to options e.g. if track_input
+        # starts with '->' which previously caused errors
+        history -s -- "$track_input"
+        if [[ -n ${COMMAND} ]] ; then
+            # Redirect tty back into the command so interactive
+            # programs can be used
+            RESULT=$(eval "${COMMAND} </dev/tty 2>&1 >/dev/tty")
+            echo "${RESULT}"
+            if [[ "${STORE_RESULT}" = "no" ]] ; then
+                continue
+            fi
+        fi
+        echo "$now $track_input" >> "${TARGET_PATH}"
+        if [[ "$STORE_RESULT" = "yes" ]] && [[ -n "${RESULT}" ]] ; then
+            echo "${RESULT}" >> "${TARGET_PATH}"
+        fi
+    done
+    # append current session to history
+    history -a "$HIST_FILE"
+    # ensure bash prompt starts on a new line
+    echo
+}
+
 case $MODE in
     'LIST')
         # list file and exit
@@ -430,62 +489,7 @@ case $MODE in
         echo "Moved ${TARGET_PATH} to trash: ${TRASH_PATH}"
         ;;
     'TRACK')
-        now=$(date '+%Y/%m/%d %H:%M')
-        # read history from previous
-        history -r $HIST_FILE
-        BLANK_LINE="no"
-        while read -ep "$now >> " track_input ; do
-            STORE_RESULT="no"
-            COMMAND=""
-            now=$(date '+%Y/%m/%d %H:%M')
-            if [[ -n $track_input ]] ; then  # note - no quotes
-                BLANK_LINE="no"
-            elif [[ ${BLANK_LINE} == "yes" ]] ; then
-                continue
-            fi
-            if [[ -z $track_input || ${BLANK_LINE} == "yes" ]] ; then
-                # we record the first of a series of blank lines
-                # to allow separation of sections
-                BLANK_LINE="yes"
-            fi
-
-            if [[ $track_input =~ ^\![^\!] ]] ; then
-                # execute and display, don't store command or result
-                COMMAND=$(echo $track_input | cut -c2-)
-            elif [[ $track_input =~ ^\! ]] ; then
-                # execute and display, store command and result
-                STORE_RESULT="yes"
-                COMMAND=$(echo $track_input | cut -c3-)
-            elif [[ $track_input =~ ^\^ ]] ; then
-                # replace previous line with content following initial '^'
-                #
-                # delete last line. note BSD/OS X require a backup extension
-                # to be specified (even if blank) unlike gnu sed.
-                sed -i"~" '$d' ${TARGET_PATH}
-                # remove initial '^'
-                track_input=$(echo "$track_input" | cut -c 2-)
-            fi
-            # use -- to indicate end to options e.g. if track_input
-            # starts with '->' which previously caused errors
-            history -s -- "$track_input"
-            if [[ -n ${COMMAND} ]] ; then
-                # Redirect tty back into the command so interactive
-                # programs can be used
-                RESULT=$(eval "${COMMAND} </dev/tty 2>&1 >/dev/tty")
-                echo "${RESULT}"
-                if [[ "${STORE_RESULT}" = "no" ]] ; then
-                    continue
-                fi
-            fi
-            echo "$now $track_input" >> "${TARGET_PATH}"
-            if [[ "$STORE_RESULT" = "yes" ]] && [[ -n "${RESULT}" ]] ; then
-                echo "${RESULT}" >> "${TARGET_PATH}"
-            fi
-        done
-        # append current session to history
-        history -a "$HIST_FILE"
-        # ensure bash prompt starts on a new line
-        echo
+        do_editfile_track
         ;;
     '')
         # Edit it...
